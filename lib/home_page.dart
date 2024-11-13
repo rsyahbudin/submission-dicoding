@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'add_task_page.dart';
+import 'about_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
@@ -59,66 +60,95 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return MaterialApp(
       theme: _isDarkTheme ? ThemeData.dark() : ThemeData.light(),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('To-Do List'),
+          title: Text('To-Do List'),
           actions: [
             IconButton(
-              icon: const Icon(Icons.brightness_6),
+              icon: Icon(Icons.brightness_6),
               onPressed: _toggleTheme,
             ),
             IconButton(
-              icon: const Icon(Icons.check_box),
+              icon: Icon(Icons.check_box),
               onPressed: _toggleCompleted,
+            ),
+            IconButton(
+              icon: Icon(Icons.info),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AboutPage()),
+                );
+              },
             ),
           ],
         ),
-        body: _tasks.isEmpty
-            ? const Center(child: Text('No tasks added.'))
-            : ListView.builder(
-                itemCount: _tasks.length,
-                itemBuilder: (context, index) {
-                  if (!_showCompleted && _tasks[index]['completed'] == true) {
-                    return Container();
-                  }
-
-                  return ListTile(
-                    title: Text(
-                      _tasks[index]['task'],
-                      style: TextStyle(
-                          decoration: _tasks[index]['completed']
-                              ? TextDecoration.lineThrough
-                              : null),
-                    ),
-                    subtitle: Text('Category: ${_tasks[index]['category']}'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.check),
-                          onPressed: () {
-                            setState(() {
-                              _tasks[index]['completed'] = !_tasks[index]['completed'];
-                            });
-                            _saveTasks();
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () {
-                            setState(() {
-                              _tasks.removeAt(index);
-                            });
-                            _saveTasks();
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Task List',
+                style: TextStyle(fontSize: screenWidth > 600 ? 24 : 18),
               ),
+            ),
+            Expanded(
+              child: _tasks.isEmpty
+                  ? Center(child: Text('No tasks added.'))
+                  : ListView.builder(
+                      itemCount: _tasks.length,
+                      itemBuilder: (context, index) {
+                        if (!_showCompleted && _tasks[index]['completed'] == true) {
+                          return Container();
+                        }
+
+                        return ListTile(
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _tasks[index]['task'],
+                                  style: TextStyle(
+                                    fontSize: screenWidth > 600 ? 18 : 14,
+                                    decoration: _tasks[index]['completed']
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.check),
+                                onPressed: () {
+                                  setState(() {
+                                    _tasks[index]['completed'] =
+                                        !_tasks[index]['completed'];
+                                  });
+                                  _saveTasks();
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () {
+                                  setState(() {
+                                    _tasks.removeAt(index);
+                                  });
+                                  _saveTasks();
+                                },
+                              ),
+                            ],
+                          ),
+                          subtitle: Text('Category: ${_tasks[index]['category']}'),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             final task = await Navigator.push(
@@ -129,7 +159,7 @@ class _HomePageState extends State<HomePage> {
               _addTask(task);
             }
           },
-          child: const Icon(Icons.add),
+          child: Icon(Icons.add),
         ),
       ),
     );
